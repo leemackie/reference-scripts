@@ -49,8 +49,22 @@ param(
     [Parameter(Position=4,Mandatory=$true)][string]$ClientSecret
 )
 
-if (!(Get-Command "Get-MGBetaApplication" -ErrorAction SilentlyContinue)) {
-    Throw "Missing Microsoft.Graph.Beta module, install with 'Install-Module -Name Microsoft.Graph.Beta -Scope AllUsers'"
+# Force pwsh.exe execution, unfortunately
+# While so far Powershell Graph modules should work with Windows Powershell 5,
+# in practise they are far less reliable than on Microsoft Powershell.
+#
+# Consider setting PowershellExecutablePath to pwsh.exe in Settings.json
+if ($PSVersionTable.PSEdition -ne 'Core') {
+    & pwsh.exe -NoProfile -ExecutionPolicy Bypass -File $PSCommandPath @args
+    exit $LASTEXITCODE
+}
+
+if (!(Get-Command "Connect-MgGraph" -ErrorAction SilentlyContinue)) {
+    Throw "Microsoft.Graph.Authentication module, install with 'Install-Module -Name Microsoft.Graph.Authentication -Scope AllUsers'"
+} 
+
+if (!(Get-Command "Get-MgBetaApplication" -ErrorAction SilentlyContinue)) {
+    Throw "Missing Microsoft.Graph.Beta module, install with 'Install-Module -Name Microsoft.Graph.Beta.Applications -Scope AllUsers'"
 } 
 
 # Connect to Microsoft Graph using ClientId/ClientSecret
