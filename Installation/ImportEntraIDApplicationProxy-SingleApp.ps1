@@ -72,37 +72,27 @@ $SecureSecret = ConvertTo-SecureString -String $ClientSecret -AsPlainText -Force
 $ClientSecretCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ClientId, $SecureSecret
 $null = Connect-MgGraph -TenantId $TenantId -ClientSecretCredential $ClientSecretCredential -NoWelcome
 
-# Get service principals tagged with WindowsAzureActiveDirectoryOnPremApp
-$aadapServPrinc = Get-MgBetaServicePrincipal -All | Where-Object {$_.Tags -Contains "WindowsAzureActiveDirectoryOnPremApp"}
+$app = Get-MgApplication -Filter "AppId eq '$TargetAppId'" -ErrorAction Stop
+if (-not $app) { Throw "No application found with Application ID '$TargetAppId'." }
 
-# Get all applications
-$aadapps = Get-MgBetaApplication -All
-
-# Match by AppId to get proxy applications
-$aadproxyapps = $aadapServPrinc | ForEach-Object { $aadapps | Where-Object AppId -eq $_.AppId }
-
-"Found $($aadproxyapps.count) applications to update"
 
 # Read certificate and convert to Base64
 $certBytes = [System.IO.File]::ReadAllBytes($PfxPath)
 $certBase64 = [System.Convert]::ToBase64String($certBytes)
 
-# Update each application
-$aadproxyapps | ForEach-Object {
-    "Updating certificate for $($_.DisplayName)"
-    
-    $body = @{
-        onPremisesPublishing = @{
-            verifiedCustomDomainKeyCredential = @{
-                type="X509CertAndPassword";
-                value = $certBase64
-            };
-
-            verifiedCustomDomainPasswordCredential = @{ value = $PfxPass };
+$certParams = @{
+    onPremisesPublishing = @{
+        verifiedCustomDomainKeyCredential = @{
+            type  = "X509CertAndPassword"
+            value = $certBase64
         }
-    } | ConvertTo-Json -Depth 10
-    
-    Update-MgBetaApplication -applicationid $_.Id -BodyParameter $body
+        verifiedCustomDomainPasswordCredential = @{
+            value = $PfxPass
+        }
+    }
 }
+
+"Updating certificate for $($app.DisplayName)"
+Update-MgBetaApplication -ApplicationId $app.Id -BodyParameter $certParams
 
 $null = Disconnect-MgGraph
