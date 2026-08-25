@@ -13,6 +13,9 @@ The absolute path to the pfx file that will be uploaded to Entra ID. Typically u
 .PARAMETER PfxPass
 The password for the pfx file. Typically use '{CachePassword}'
 
+.PARAMETER TenantId
+The Entra ID tenant ID (GUID).
+
 .PARAMETER ClientId
 The application (client) ID of the app registration used to authenticate.
 
@@ -41,8 +44,9 @@ Unfortunately, the graph API doesn't have good (or any really) documentation abo
 param(
     [Parameter(Position=0,Mandatory=$true)][string]$PfxPath,
     [Parameter(Position=1,Mandatory=$true)][string]$PfxPass,
-    [Parameter(Position=2,Mandatory=$true)][string]$ClientId,
-    [Parameter(Position=3,Mandatory=$true)][string]$ClientSecret
+    [Parameter(Position=2,Mandatory=$true)][string]$TenantId,
+    [Parameter(Position=3,Mandatory=$true)][string]$ClientId,
+    [Parameter(Position=4,Mandatory=$true)][string]$ClientSecret
 )
 
 if (!(Get-Command "Get-MGBetaApplication" -ErrorAction SilentlyContinue)) {
