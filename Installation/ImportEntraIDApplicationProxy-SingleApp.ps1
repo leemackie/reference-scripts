@@ -10,7 +10,7 @@ Uses Microsoft Graph API instead of deprecated AzureAD module.
 .PARAMETER PfxPath
 The absolute path to the pfx file that will be uploaded to Entra ID. Typically use '{CacheFile}'
 
-.PARAMETER CertPass
+.PARAMETER PfxPass
 The password for the pfx file. Typically use '{CachePassword}'
 
 .PARAMETER ClientId
@@ -40,7 +40,7 @@ Unfortunately, the graph API doesn't have good (or any really) documentation abo
 
 param(
     [Parameter(Position=0,Mandatory=$true)][string]$PfxPath,
-    [Parameter(Position=1,Mandatory=$true)][string]$CertPass,
+    [Parameter(Position=1,Mandatory=$true)][string]$PfxPass,
     [Parameter(Position=2,Mandatory=$true)][string]$ClientId,
     [Parameter(Position=3,Mandatory=$true)][string]$ClientSecret
 )
@@ -80,7 +80,7 @@ $aadproxyapps | ForEach-Object {
                 value = $certBase64
             };
 
-            verifiedCustomDomainPasswordCredential = @{ value = $CertPass };
+            verifiedCustomDomainPasswordCredential = @{ value = $PfxPass };
         }
     } | ConvertTo-Json -Depth 10
     
